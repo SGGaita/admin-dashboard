@@ -1,7 +1,9 @@
 import { Topbar } from "./components/Topbar";
+import { Sidebar } from "./components/Sidebar";
 import { HomePage, LoginPage } from "./pages";
 import { ColorModeContext, useMode } from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
+import { Routes, Route } from "react-router-dom";
 
 
 function App() {
@@ -14,6 +16,9 @@ function App() {
         <div className="app">
           <main className="content">
             <Topbar/>
+            <Routes>
+              <Route path="/" element={<HomePage/>}/>
+            </Routes>
           </main>
         </div>
       </ThemeProvider>
