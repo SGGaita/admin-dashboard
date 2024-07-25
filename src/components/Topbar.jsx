@@ -1,5 +1,5 @@
-import React, { useContext } from 'react'
-import { Box, IconButton, useTheme } from '@mui/material'
+import React, { useContext, useState } from 'react'
+import { Box, IconButton, useTheme, Menu, MenuItem, ListItemIcon, Typography } from '@mui/material'
 import { ColorModeContext, tokens } from '../theme'
 import InputBase from '@mui/material/InputBase'
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
@@ -12,8 +12,24 @@ export const Topbar = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode)
     const colorMode = useContext(ColorModeContext)
+    const [anchorEl, setAnchorEl] = useState(null); // State for dropdown visibility
 
-    return (<Box  display="flex" justifyContent="space-between" p={2}>
+    // User information (replace with your data fetching mechanism)
+    const userInfo = {
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        // Add other relevant user information
+    };
+
+    const handleMenuOpen = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
+    return (<Box display="flex" justifyContent="space-between" p={2}>
         {/* SEARCH BAR */}
         <Box
             display="flex"
@@ -42,13 +58,36 @@ export const Topbar = () => {
                 <NotificationModeOutlinedIcon />
             </IconButton>
 
-            <IconButton>
+            <IconButton onClick={handleMenuOpen}>
                 <PersonOutlineIcon />
             </IconButton>
+            <Menu
+                id="menu-basic"
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                MenuListProps={{
+                    'aria-labelledby': 'basic-button',
+                }}
+                 
+            >
+                <MenuItem sx={{ bgcolor: colors.primary[300] }}>
+                    <ListItemIcon>
+                        <PersonOutlineIcon />
+                    </ListItemIcon>
+                    <Typography variant="body2">{userInfo.name}</Typography>
+                </MenuItem>
+                <MenuItem>
+                    <ListItemIcon>
+                        {/* Add appropriate icon for email */}
+                    </ListItemIcon>
+                    <Typography variant="body2">{userInfo.email}</Typography>
+                </MenuItem>
+                {/* Add menu items for other user information */}
+            </Menu>
 
 
 
-            
         </Box>
     </Box>
     )

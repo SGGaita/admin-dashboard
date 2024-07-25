@@ -1,84 +1,137 @@
-import React from 'react'
-import './login.scss'
-import { useFormik } from 'formik'
+import React, {useState} from 'react'
+import { useFormik, Formik, Form } from 'formik'
 import * as Yup from 'yup';
 import axios from 'axios';
+import { images } from '../../constants'
+import { Alert, Box, Button, IconButton, Snackbar, TextField, Typography, useTheme } from "@mui/material";
+import { Link } from "react-router-dom";
+import { tokens } from "../../theme";
+import CheckIcon from '@mui/icons-material/Check';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 
-const REACT_APP_API_AUTH_TOKEN=`http://render.com/fuelpay/render-json/jwt-auth/v1/token`
+
 
 export const LoginPage = () => {
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
+    const [open, setOpen] = React.useState(true);
+    const [message, setMessage] = useState('')
+    const [severity, setSeverity] = useState('');
 
-const formik = useFormik({
-//Initial values
-initialValues:{
-    email:'',
-    password:''
-},
+   
 
-//Validation Schema
-validationSchema: Yup.object({
-    email: Yup.string().required().email(),
-    password: Yup.string().required(),
-}),
+    const handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
 
-//On Submit
-onSubmit:(data)=>{
-    
-    const {email, password} = data;
-
-    console.log("Test variables hard coded",REACT_APP_API_AUTH_TOKEN)
-    console.log("Test variable in .env", process.env.REACT_APP_API_AUTH_TOKEN)
+        setOpen(false);
+    };
 
 
-    axios.post(REACT_APP_API_AUTH_TOKEN, {
-        "username": email,
-        "password" : password
-    }).then((res)=>{
-        console.log("response", res)
-    }).catch((err)=>{
-        console.log("error", err)
-    })
-}
-});
+    const initialValues = {
+        email: '',
+        password: '',
+    };
 
-// console.log("Formik values", formik.values)
-// console.log("Formik errors", formik.errors)
+    const validationSchema = Yup.object().shape({
+        email: Yup.string().email('Invalid email format').required('Email is required'),
+        password: Yup.string()
+            .min(8, 'Password must be at least 8 characters')
+            .required('Password is required'),
+    });
+
+
+
+    const onSubmit = async (values, { setSubmitting, resetForm }) => {
+        // Handle form submission logic here, e.g., send data to server
+        console.log('Submitted values:', values);
+
+        try {
+            const response = await axios.post('http://localhost:5000/api/login', values)
+            setOpen(true);
+            console.log("Response", response)
+            setMessage(response.data.message)
+            setSeverity('success')
+            // ... handle successful response
+            resetForm();
+        } catch (error) {
+            setOpen(true);
+            setMessage(error.response.data.message)
+            setSeverity('error')
+        }
+    }
+
+
     return (
-        <div className='login-container'>
-            <div className="wrapper">
-                <div className="login-form">
-                    <div className="header">
-                        <div className="heading">
-                            <h1>Job Card Login</h1>
-                        </div>
-                        <div className="prompt-text">
-                            <p>
-                                Hey, Enter your details to sign in to your account.
-                            </p>
-                        </div>
-                    </div>
+        <Box display="flex" position="relative" height="100vh" backgroundColor={colors.primary[400]}>
+           <Snackbar
+                open={open}
+                autoHideDuration={7000}
+                onClose={handleClose}
+                message={message}
+            >
+                <Alert icon={severity === 'error' ? <ErrorOutlineIcon fontSize="20px" /> : <CheckIcon fontSize="inherit" />} severity={severity}>
+                <Typography variant='h5'>{message}</Typography>
+                </Alert>
+            </Snackbar>
+            <Box display="flex" flexDirection="row" justifyContent="center" width="100%" alignItems="center">
+                <Box
+                    display="flex"
+                    alignItems="center"
+                    flexDirection="column"
+                    width="30%"
+                >
+                    <img src={images.logo} style={{ width: "40%", marginBottom: "20px" }} />
+                    <Typography variant='h3'>Login</Typography>
+                    <Typography variant='h5' mt="10px" mb="25px">Enter your credentials to login!</Typography>
+                    <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={onSubmit}>
+                        {({ isSubmitting, handleBlur, handleChange, touched, errors, values }) => (
 
-                    <form onSubmit={formik.handleSubmit}>
+                            <Form>
+                               <TextField
+                                    autoComplete="off"
+                                    label="Enter your email"
+                                    value={values.email}
+                                    name="email"
+                                    type="email"
+                                    variant="outlined"
+                                    fullWidth
+                                    onBlur={handleBlur}
+                                    onChange={handleChange}
+                                    error={touched.email && errors.email}
+                                    helperText={touched.email && errors.email} // Corrected typo
+                                    style={{ marginBottom: "35px", backgroundColor: colors.primary[500] }}
 
-                    <div className="input-element">
-                        <label htmlFor="" className="element-label">Username</label>
-                        <input type="text" className="input-field" name="email" value={formik.values.email} onChange={formik.handleChange} />
-                    </div>
+                                />
 
-                    <div className="input-element">
-                        <label htmlFor="" className="element-label">Password</label>
-                        <input type="password" className="input-field" name="password" value={formik.values.password} onChange={formik.handleChange}/>
-                    </div>
+                                <TextField
+                                    name="password"
+                                    value={values.password}
+                                    label="Enter your password"
+                                    type="password"
+                                    variant="outlined"
 
-                    <div className="button">
-                        <button className="btn" type='submit'>Login</button>
-                    </div>
-                    </form>
+                                    required
+                                    fullWidth
+                                    onBlur={handleBlur}
+                                    onChange={handleChange}
+                                    error={touched.password && errors.password}
+                                    helperText={touched.password && errors.password} // Corrected typo
+                                    style={{ marginBottom: "35px", backgroundColor: colors.primary[500] }}
 
-                   
-                </div>
-            </div>
-        </div>
+                                />
+
+                                <Button sx={{ width: "100%", height: "60px", fontSize: "14px" }} color='success' variant="contained" type="submit" disabled={isSubmitting}>Login</Button>
+
+                            </Form>
+                        )}
+                    </Formik>
+
+
+                </Box>
+            </Box>
+        </Box>
     )
 }

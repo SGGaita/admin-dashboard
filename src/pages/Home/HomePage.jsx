@@ -1,5 +1,5 @@
 import React, {useContext} from 'react'
-import { JobCardForm } from '../../components';
+import { JobCard} from '../../components';
 import './home.scss'
 import { Box, IconButton, useTheme } from '@mui/material'
 import { ColorModeContext, tokens } from '../../theme'
@@ -13,8 +13,9 @@ export const HomePage = () => {
 
   return (
     <Box  display="flex"
-    backgroundColor={colors.primary[700]}>
-        <JobCardForm/>
+    p="25px"
+    >
+        <JobCard/>
     </Box>
   )
 }
