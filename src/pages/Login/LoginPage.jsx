@@ -1,25 +1,34 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 import { useFormik, Formik, Form } from 'formik'
 import * as Yup from 'yup';
 import axios from 'axios';
 import { images } from '../../constants'
 import { Alert, Box, Button, IconButton, Snackbar, TextField, Typography, useTheme } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { tokens } from "../../theme";
 import CheckIcon from '@mui/icons-material/Check';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-
+import { useDispatch } from 'react-redux';
+import { loginSuccess, loginFailure } from '../../redux/authSlice';
+import CircularProgress from '@mui/material/CircularProgress';
 
 
 
 export const LoginPage = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
-    const [open, setOpen] = React.useState(true);
+    const [open, setOpen] = useState(false);
     const [message, setMessage] = useState('')
     const [severity, setSeverity] = useState('');
+    const [state, setState] = useState({
+        vertical: 'top',
+        horizontal: 'right',
+    })
+    const { vertical, horizontal } = state;
+    const dispatch = useDispatch(); //Get dispatch function
+    const navigate = useNavigate()
 
-   
+
 
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
@@ -51,10 +60,12 @@ export const LoginPage = () => {
         try {
             const response = await axios.post('http://localhost:5000/api/login', values)
             setOpen(true);
-            console.log("Response", response)
             setMessage(response.data.message)
             setSeverity('success')
             // ... handle successful response
+            //DIspatch loginSuccess action with user data
+            dispatch(loginSuccess(response.data))
+            navigate('/dashboard')
             resetForm();
         } catch (error) {
             setOpen(true);
@@ -66,14 +77,15 @@ export const LoginPage = () => {
 
     return (
         <Box display="flex" position="relative" height="100vh" backgroundColor={colors.primary[400]}>
-           <Snackbar
+            <Snackbar
                 open={open}
-                autoHideDuration={7000}
+                autoHideDuration={10000}
                 onClose={handleClose}
                 message={message}
+                anchorOrigin={{ vertical, horizontal }}
             >
                 <Alert icon={severity === 'error' ? <ErrorOutlineIcon fontSize="20px" /> : <CheckIcon fontSize="inherit" />} severity={severity}>
-                <Typography variant='h5'>{message}</Typography>
+                    <Typography variant='h5'>{message}</Typography>
                 </Alert>
             </Snackbar>
             <Box display="flex" flexDirection="row" justifyContent="center" width="100%" alignItems="center">
@@ -90,7 +102,7 @@ export const LoginPage = () => {
                         {({ isSubmitting, handleBlur, handleChange, touched, errors, values }) => (
 
                             <Form>
-                               <TextField
+                                <TextField
                                     autoComplete="off"
                                     label="Enter your email"
                                     value={values.email}
@@ -123,7 +135,9 @@ export const LoginPage = () => {
 
                                 />
 
-                                <Button sx={{ width: "100%", height: "60px", fontSize: "14px" }} color='success' variant="contained" type="submit" disabled={isSubmitting}>Login</Button>
+                                <Button sx={{ width: "100%", height: "60px", fontSize: "14px" }} color='success' variant="contained" type="submit" disabled={isSubmitting}>
+                                    {isSubmitting ? <CircularProgress/>  : 'Login'}
+                                </Button>
 
                             </Form>
                         )}

@@ -13,19 +13,18 @@ app.use(express.json());
 
 
 
-
-// const corsOptions = {
-//     origin: ['https://your-frontend-domain.com', 'http://localhost:3000']  // Allowed origins
-//   };
+ const corsOptions = {
+    origin: ['http://localhost:3000']  // Allowed origins
+  };
 
 //Enable CORS with default options (allw all origins)
-app.use(cors());
+app.use(cors(corsOptions));
 
  
 // routes goes here
 
-const routes = require('./routes/jobCards')
-app.use('/', routes)
+const routes = require('./routes')
+app.use('/api', routes)
 
 app.listen(port, () => {
     console.log(`Server listening on port ${port}`)

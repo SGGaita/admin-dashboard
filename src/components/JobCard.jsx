@@ -9,8 +9,7 @@ import {
 } from "@mui/material";
 import React, { useState } from 'react'
 import { tokens } from '../theme';
-import './jobcard.scss'
-import { Clientform, SpecificationsForm, SummaryForm } from "./_form_partials";
+import { Clientform, SpecificationsForm, SuccessComponent, SummaryForm } from "./_form_partials";
 import { useFormik } from 'formik'
 import { Formik, Form } from 'formik'
 import { formValues, validationSchema } from "../utils";
@@ -21,6 +20,7 @@ const steps = [
     'Client Information',
     'Specification Details',
     'Summary & Confirmation',
+    
 ];
 
 
@@ -33,6 +33,10 @@ export const JobCard = () => {
     const [isClientEmpty, setIsEmpty] = useState(true)
     const [errorState, setErrorState] = useState(null);
     const [uploadedPhotos, setUploadedPhotos] = useState({});
+    const [message, setMessage] = useState('')
+    const [jobID, setJobID] = useState('')
+    const [completed, setCompleted] = useState(false)
+
 
 
     const formik = useFormik({
@@ -41,57 +45,83 @@ export const JobCard = () => {
         onSubmit: async (values, { setSubmitting }) => {
             setSubmitting(true); // Show loading indicator
             const formData = new FormData(); // Create a FormData object for multipart data
-            console.log("Values client", values)
-            console.log("Values client first anme", values.client.firstName)
-            console.log('Form data', formData)
-
            
-                  // Ensure formValues is available before using it
-       // Add client and machine specification data (excluding photo)
-//        Object.entries(values.client).forEach(([key, value]) => formData.append(key, value));
-//       Object.entries(values.specification).forEach(([key, value]) => {
-//         if (key !== 'machinePhoto') { // Don't include machinePhoto in FormData
-//           formData.append(key, value);
-//         }
-//   });
+            //Create unique jobcard id
+            //generate radom JC_ID
 
-      // Handle machine photo upload (if applicable)
-      if (values.specification.machinePhoto) {
-        formData.append('machinePhoto', values.specification.machinePhoto);
-     }
+            const firstInitial = values.client.firstName.charAt(0).toUpperCase();
+            const lastInitial = values.client.lastName.charAt(0).toUpperCase();
+            const randomDigits = Math.floor(Math.random() * 100000000); // Generate a number between 0 and 99999999
+            const jobCardId = `${firstInitial}${lastInitial}-${randomDigits.toString().padStart(8, "0")}`;
 
-    //    // Handle individual hardware part photo uploads (if applicable)
-    //     Object.entries(values.specification.hardwareParts).forEach(([part, details]) => {
-    //      if (details.photo) {
-    //        formData.append(`${part}Photo`, details.photo);
-    //      }
-    //    });
+            formData.append('jobCardId', jobCardId)
+
+            // Ensure formValues is available before using it
+            // Add client and machine specification data (excluding photo)
+            Object.entries(values.client).forEach(([key, value]) => formData.append(key, value));
+            Object.entries(values.specification).forEach(([key, value]) => {
+                if (key !== 'machinePhoto' && key !== 'hardwareParts') { // Don't include machinePhoto in FormData
+                    formData.append(key, value);
+                }
+            });
+
+            Object.entries(values.specification.hardwareParts).forEach(([part, details]) => {
+                if (details.photo) {
+                    formData.append(`${part}Serial`, details.serial);
+                }
+            });
 
 
-      console.log('Form data after appending client data:', [...formData.entries()]);
 
-      try {
-        const response = await fetch('http://localhost:5000/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-      
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      
-        const data = await response.json();
-        console.log('Response:', data); // Handle successful response (e.g., reset form, show success message)
-        setSubmitting(false); // Hide loading indicator after successful submission
-      } catch (error) {
-        console.error('Error:', error); // Handle errors (e.g., display error message)
-        setSubmitting(false); // Hide loading indicator after failed submission
-      }
-      
+            // Handle machine photo upload (if applicable)
+            if (values.specification.machinePhoto) {
+                formData.append('machinePhoto', values.specification.machinePhoto);
+            }
+
+            //    // Handle individual hardware part photo uploads (if applicable)
+            Object.entries(values.specification.hardwareParts).forEach(([part, details]) => {
+                if (details.photo) {
+                    formData.append(`${part}Photo`, details.photo);
+                }
+            });
+
+          
+
+
+            console.log('Form data after appending client data:', [...formData.entries()]);
+
+            try {
+                const response = await fetch('http://localhost:5000/api/jobs/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                
+                setMessage(data.message)
+                setJobID(data.jobcardID)
+                console.log('Response:', data); // Handle successful response (e.g., reset form, show success message)
+                //setActiveStep(activeStep + 1);
+                if (data.message == "Job Card information saved successfully"){
+                    setSubmitting(false); // Hide loading indicator after successful submission
+                    setCompleted(true)
+                }
+
+               
+            } catch (error) {
+                console.error('Error:', error); // Handle errors (e.g., display error message)
+                setSubmitting(false); // Hide loading indicator after failed submission
+            }
+
         },
     })
 
-    
+
     const handleNext = () => {
         formik.errors = {}
         const currentStep = formik.values.step || 0; // Get current step from formik or default to 0
@@ -153,37 +183,37 @@ export const JobCard = () => {
                 formik.setValues(prevValues => ({ // Use `setValues` provided by Formik
                     ...prevValues,
                     specification: {
-                      ...prevValues.specification,
-                      hardwareParts: {
-                        ...prevValues.specification.hardwareParts,
-                        [part]: {
-                          ...prevValues.specification.hardwareParts[part],
-                          photo: file,
+                        ...prevValues.specification,
+                        hardwareParts: {
+                            ...prevValues.specification.hardwareParts,
+                            [part]: {
+                                ...prevValues.specification.hardwareParts[part],
+                                photo: file,
+                            },
                         },
-                      },
                     },
-                  }));
+                }));
             } else {
                 // Handle the case where part is undefined (e.g., upload for machine photo)
                 setUploadedPhotos({ ...uploadedPhotos, machinePhoto: previewUrl });
                 formik.setValues(prevValues => ({
                     ...prevValues,
                     specification: {
-                      ...prevValues.specification,
-                      machinePhoto: file, // Assign photo based on part
+                        ...prevValues.specification,
+                        machinePhoto: file, // Assign photo based on part
                     },
-                  }));
+                }));
             }
 
         }
     }
 
     //console.log("uploaded", uploadedPhotos)
-   // console.log("values", formik.values)
+    // console.log("values", formik.values)
 
 
 
-   
+
 
 
 
@@ -223,7 +253,12 @@ export const JobCard = () => {
 
                                     "& .MuiStepLabel-label": {
                                         fontSize: 18
-                                    }
+                                    },
+                                    
+                                     "& .Mui-completed" :{
+                                        color: "#66bb6a !important"
+                                     }  
+                                    ,
                                 }}
                             >{label}</StepLabel>
                         </Step>
@@ -232,11 +267,10 @@ export const JobCard = () => {
 
             </Stepper>
 
-            {activeStep === steps.length ? (
-                <Typography>
-                    {/*Create a success component*/}
-                    Job Card Submitted Successfully
-                </Typography>
+            {completed ? (
+                <>
+                <SuccessComponent message={message} jobcardid={jobID}/>
+                </>
             ) : (
                 <Formik initialValues={formik.initialValues} onSubmit={formik.handleSubmit}>
                     <Form>  {/* Wrap form content inside Form */}
@@ -244,7 +278,8 @@ export const JobCard = () => {
                             < >
                                 {activeStep === 0 && <Clientform formik={formik} />}
                                 {activeStep === 1 && <SpecificationsForm formik={formik} handlePhotoUpload={handlePhotoUpload} uploadedPhotos={uploadedPhotos} />}
-                                {activeStep === 2 && <SummaryForm formik={formik} uploadedPhotos={uploadedPhotos} />}
+                                {activeStep === 2 && <SummaryForm formik={formik} uploadedPhotos={uploadedPhotos} />} 
+                                
 
 
                             </>
@@ -255,7 +290,7 @@ export const JobCard = () => {
                                 flexDirection="row"
                                 justifyContent="space-between"
                                 padding="20px">
-                                {activeStep > 0 &&
+                                {activeStep > 0 && activeStep !== 3 &&
                                     <button
                                         style={{
                                             cursor: "pointer",
@@ -268,7 +303,7 @@ export const JobCard = () => {
                                         }}
                                         onClick={handleBack}
                                     >Back</button>}
-                                {activeStep < steps.length - 1 && (
+                                {activeStep < steps.length - 1 && activeStep !== 3 && (
                                     <Button
                                         style={{
                                             cursor: "pointer",

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, List, ListItem, Divider, useTheme } from '@mui/material';
 import { tokens } from '../../theme';
-import axios from 'axios';
+
 
 
 
@@ -11,26 +11,25 @@ export const SummaryForm = ({ formik,uploadedPhotos }) => {
   const colors = tokens(theme.palette.mode);
  
 
-
   const renderHardwarePart = (hardwarePart) => (
-    <ListItem key={hardwarePart._name} sx={{ flex: "0 0 33.3333%", marginBottom: '30px' }}>
+       <ListItem key={hardwarePart._name} sx={{ flex: "0 0 33.3333%", marginBottom: '30px' }}>
       <Box>
         <Box>
           <Typography variant="h5"><strong>{hardwarePart.label} Serial Number: </strong>  {hardwarePart.serial}</Typography>
-          <Box>
-            {formik.values.specification.hardwareParts[hardwarePart._name]?.photo && (
+           <Box>
+             {uploadedPhotos[hardwarePart._name] && (
               <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginTop: "20px" }}>
-                <img
-                  src={uploadedPhotos[hardwarePart._name].photo}
+                 <img
+                  src={uploadedPhotos[hardwarePart._name]}
                   alt="Uploaded Hardware Photo"
-                  style={{ width: 300, height: 200, objectFit: 'contain', padding: "10px", backgroundColor: colors.grey[100] }}
-                />
+                   style={{ width: 300, height: 200, objectFit: 'contain', padding: "10px", backgroundColor: colors.grey[100] }}
+              />
               </Box>
-            )}
-          </Box>
-        </Box>
-      </Box>
-    </ListItem>
+             )}
+           </Box>
+         </Box>
+       </Box>
+     </ListItem>
   );
 
 

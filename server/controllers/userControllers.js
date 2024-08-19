@@ -1,46 +1,10 @@
 const pool = require('../config/database')
 const bcrypt = require('bcryptjs'); // Add bcrypt for password hashing (explained later)
 const jwt = require('jsonwebtoken');
-
-//check if table exists
-const tableExists = async (tableName) => {
-    try {
-        // Replace with your database specific query to check for tables
-        const sql = `
-        SELECT EXISTS (
-          SELECT * FROM information_schema.tables 
-          WHERE table_name = ?
-        ) AS table_exists
-      `;
-        const [result] = await pool.query(sql, [tableName]);
-        return result.table_exists;
-    } catch (err) {
-        console.error('Error checking for table:', err);
-        return false; // Assume table doesn't exist if error occurs
-    }
-}
+const tableController = require('./tableController')
 
 
-//create user account
-const createUserTable = async () => {
-    try {
-        const sql = `
-    CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    fname VARCHAR(255),
-    lname VARCHAR(255),
-    email VARCHAR(255) UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    role_id INT NOT NULL,
-    FOREIGN KEY (role_id) REFERENCES roles(id)
-  );
-      `;
-        await pool.query(sql);
-        console.log('User table created successfully.');
-    } catch (err) {
-        console.error('Error creating user table:', err);
-    }
-}
+
 
 
 
@@ -53,9 +17,9 @@ const createUser = async (req, res) => {
 
 
         // Check if table exists
-        const tableExistsResult = await tableExists('users');
+        const tableExistsResult = await tableController.tableExists('users');
         if (!tableExistsResult) {
-            await createUserTable();
+            await tableController.createUserTable();
         }
         //     //Data validation (optional, discussed later)
 
@@ -80,8 +44,7 @@ const createUser = async (req, res) => {
 
         // Attach inserted client ID to request object (assuming 'clientId' property)
         req.Id = result.insertId;
-        console.log("Users account", req.clientId)
-        console.log("result", result)
+       
         return res.status(200).json({ message: 'User account successfully created' })
         //     next();
 
@@ -145,12 +108,30 @@ const login = async (req, res) => {
             token
         };
 
-        res.status(200).json({...userData, "message": "Successful login"});
+        res.status(200).json({ ...userData, "message": "Successful login" });
 
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 }
+
+//get all user accounts
+const getAllUsers = async (req, res) => {
+    try {
+        const sql = `
+        SELECT *
+        FROM users u
+        INNER JOIN roles r ON u.role_id = r.id
+        INNER JOIN statuses s ON u.status_id = s.id
+      `;
+        const [users] = await pool.query(sql);
+        res.status(200).json(users);
+    } catch (err) {
+        console.error('Error fetching users:', err);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
 
 
 
@@ -178,4 +159,4 @@ const getRoles = async (req, res) => {
 }
 
 
-module.exports = { createUser, getRoles, login }
+module.exports = { createUser, getRoles, login, getAllUsers }

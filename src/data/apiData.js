@@ -17,3 +17,9 @@ export const fetchData = async (url) => {
     }
 
 }
+
+
+
+export const sampleData = [
+    
+]

@@ -4,13 +4,13 @@ import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
 import { tokens } from "../theme";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import AddIcon from '@mui/icons-material/Add';
 import GradingIcon from '@mui/icons-material/Grading';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import QueueIcon from '@mui/icons-material/Queue';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
@@ -117,26 +117,33 @@ export const SidebarComponent = () => {
                             color={colors.grey[300]}
                             sx={{ m: "15px 0 5px 20px" }}
                         >
-                            Job Card Manager
+                            Job Cards
                         </Typography>
                         <Item
                             title="New Job card"
-                            to="/new-job"
+                            to="/jobs/create"
                             icon={<QueueIcon />}
                             selected={selected}
                             setSelected={setSelected}
                         />
                         <Item
                             title="Open Job Cards"
-                            to="/open-jobs"
+                            to="/jobs/open-jobs"
                             icon={<ContentCopyIcon />}
 
                             selected={selected}
                             setSelected={setSelected}
                         />
+                         <Item
+                            title="Outsourced Job Cards"
+                            to="/jobs/outsourced-jobs"
+                            icon={<CompareArrowsIcon />}
+                            selected={selected}
+                            setSelected={setSelected}
+                        />
                         <Item
                             title="Closed Job Cards"
-                            to="/closed-jobs"
+                            to="/jobs/closed-jobs"
                             icon={<GradingIcon />}
                             selected={selected}
                             setSelected={setSelected}
@@ -147,18 +154,18 @@ export const SidebarComponent = () => {
                             color={colors.grey[300]}
                             sx={{ m: "15px 0 5px 20px" }}
                         >
-                            Vendor Manager
+                            Vendors
                         </Typography>
                         <Item
                             title="New Vendor"
-                            to="/home"
+                            to="/vendor/create"
                             icon={<GroupAddIcon />}
                             selected={selected}
                             setSelected={setSelected}
                         />
                         <Item
                             title="Vendors List"
-                            to="/open-jobs"
+                            to="/vendor/list"
                             icon={<ContentCopyIcon />}
 
                             selected={selected}
@@ -170,18 +177,18 @@ export const SidebarComponent = () => {
                             color={colors.grey[300]}
                             sx={{ m: "15px 0 5px 20px" }}
                         >
-                            User Manager
+                            Users
                         </Typography>
                         <Item
                             title="New user account"
-                            to="/new-user"
+                            to="/user/create"
                             icon={<PersonAddAltIcon />}
                             selected={selected}
                             setSelected={setSelected}
                         />
                         <Item
                             title="User accounts"
-                            to="/user-list"
+                            to="/user/list"
                             icon={<ContentCopyIcon />}
 
                             selected={selected}
